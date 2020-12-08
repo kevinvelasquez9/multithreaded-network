@@ -28,14 +28,14 @@ void *worker(void *arg) {
 	pthread_detach(pthread_self());
 
 	/* handle client request */
-	chat_with_client(info->c, info->clientfd, info->clientfd, info->lock);
+	chat_with_client(info->c, info->clientfd, info->clientfd, &info->lock);
 	close(info->clientfd);
 	free(info);
 
 	return NULL;
 }
 
-int chat_with_client(struct Calc *calc, int infd, int outfd,) {
+int chat_with_client(struct Calc *calc, int infd, int outfd, pthread_mutex_t *lock) {
 	rio_t in;
 	char linebuf[LINEBUF_SIZE];
 
@@ -59,6 +59,7 @@ int chat_with_client(struct Calc *calc, int infd, int outfd,) {
         } else {
 			/* process input line */
 			int result;
+            pthread_mutex_lock(lock);
 			if (calc_eval(calc, linebuf, &result) == 0) {
 				/* expression couldn't be evaluated */
 				rio_writen(outfd, "Error\n", 6);
@@ -69,6 +70,8 @@ int chat_with_client(struct Calc *calc, int infd, int outfd,) {
 					rio_writen(outfd, linebuf, len);
 				}
 			}
+            pthread_mutex_unlock(lock);
+            
 		}
 	}
     return 1;
@@ -79,14 +82,15 @@ int main(int argc, char **argv) {
 		fatal("Usage: ./calcServer <port>");
 	}
 
-	struct Calc *calc = calc_create();
 	int port = atoi(argv[1]);
     if (port < 1024) {
         printf("Not a free port\n");
         return 0;
     }
 
-	int serverfd = open_listenfd((char*) port);
+    struct Calc *calc = calc_create();
+
+	int serverfd = Open_listenfd(argv[1]);
 	if (serverfd < 0) {
 		fatal("Couldn't open server socket");
 	}
@@ -98,8 +102,8 @@ int main(int argc, char **argv) {
 		}
 
 		/* create ConnInfo object */
-		struct CalcInfo *info = malloc(sizeof(struct ConnInfo));
-        pthread_mutex_init(&obj->lock, NULL);
+		struct CalcInfo *info = malloc(sizeof(struct CalcInfo));
+        pthread_mutex_init(&info->lock, NULL);
 		info->clientfd = clientfd;
         info->c = calc;
 
