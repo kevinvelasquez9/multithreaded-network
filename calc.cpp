@@ -4,6 +4,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <iostream>
+#include <mutex>
 using std::vector;
 using std::string;
 using std::stringstream;
@@ -17,6 +18,7 @@ struct Calc {
 class CalcImpl : public Calc {
     public:
         unordered_map<string, int> variables;
+        std::mutex mutex;
         
         int evalExpr(const char *expr, int *result) {
             vector<string> tokens = tokenize(expr);
@@ -26,10 +28,14 @@ class CalcImpl : public Calc {
                     err = evalOne(tokens[0], result);
                     break;
                 case 3:
+                    mutex.lock();
                     err = evalThree(tokens, result);
+                    mutex.unlock();
                     break;
                 case 5:
+                    mutex.lock();
                     err = evalFive(tokens, result);
+                    mutex.unlock();
                     break;
             }
             if (!err) {
