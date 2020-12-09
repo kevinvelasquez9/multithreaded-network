@@ -15,7 +15,7 @@ struct CalcInfo {
 
 void fatal(const char *msg) {
 	fprintf(stderr, "error: %s\n", msg);
-	exit(1);
+    exit(1);
 }
 
 void *worker(void *arg) {
@@ -107,11 +107,13 @@ int main(int argc, char **argv) {
 		info->clientfd = clientfd;
         info->c = calc;
 
+        pthread_t thr_id;
 		/* start new thread to handle client connection */
-		pthread_t thr_id;
 		if (pthread_create(&thr_id, NULL, worker, info) != 0) {
 			fatal("pthread_create failed");
 		}
+
+        pthread_mutex_destroy(&info->lock);
 	}
     close(serverfd);
     calc_destroy(calc);
