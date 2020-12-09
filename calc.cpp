@@ -28,14 +28,10 @@ class CalcImpl : public Calc {
                     err = evalOne(tokens[0], result);
                     break;
                 case 3:
-                    mutex.lock();
                     err = evalThree(tokens, result);
-                    mutex.unlock();
                     break;
                 case 5:
-                    mutex.lock();
                     err = evalFive(tokens, result);
-                    mutex.unlock();
                     break;
             }
             if (!err) {
@@ -103,7 +99,9 @@ class CalcImpl : public Calc {
                 if (is_alpha(tokens[0])) {
                     int num;
                     if (is_num(tokens[2], &num)) {
+                        mutex.lock();
                         variables[tokens[0]] = num;
+                        mutex.unlock();
                         *result = num;
                         return true;
                     }
@@ -117,7 +115,9 @@ class CalcImpl : public Calc {
         bool evalFive(vector<string> tokens, int *result) {
             int ans;
             if (tokens[1] == "=" && compute(tokens[2], tokens[3], tokens[4], &ans)) {
+                mutex.lock();
                 variables[tokens[0]] = ans;
+                mutex.unlock();
                 *result = ans;
                 return true;
             }
