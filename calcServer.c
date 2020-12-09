@@ -6,6 +6,7 @@
 /* buffer size for reading lines of input from user */
 #define LINEBUF_SIZE 1024
 
+/* Global variable for thread creation loop */
 int outer_exit = 1;
 
 struct CalcInfo {
@@ -13,6 +14,7 @@ struct CalcInfo {
     struct Calc *c;
 };
 
+/* Declaration of functions before definition to get rid of errors */
 void chat_with_client(struct Calc *calc, int infd, int outfd);
 void *worker(void *arg);
 
@@ -72,11 +74,13 @@ void *worker(void *arg) {
 }
 
 int main(int argc, char **argv) {
+/* Get valid args */
     if (argc != 2) {
 		printf("Incorrect number of arguments\n");
         return 1;
 	}
 
+    /* Get valid port */
 	int port = atoi(argv[1]);
     if (port < 1024) {
         printf("Not a free port\n");
